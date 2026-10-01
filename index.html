@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="RotaAcessível: encontre locais acessíveis.">
+  <title>RotaAcessível</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <a class="logo" href="#inicio"> Rota<span>Acessível</span></a>
+
+    <nav>
+      <a href="#inicio">Explorar</a>
+      <a href="#locais">Locais</a>
+      <a href="#sobre">Sobre nós</a>
+    </nav>
+
+    <button id="sugerir" class="botao-contorno">+ Sugerir local</button>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="hero-texto">
+        <p class="destaque">INFORMAÇÃO QUE INCLUI</p>
+        <h1>A cidade é para<br><em>todas as pessoas.</em></h1>
+        <p>
+          Encontre e compartilhe lugares com acessibilidade para viver
+          a cidade com mais autonomia.
+        </p>
+
+        <form id="busca" class="busca">
+          <input id="termo" type="search" placeholder="O que você procura?">
+          <button type="submit">Buscar</button>
+        </form>
+
+        <small>Informações construídas pela comunidade</small>
+      </div>
+
+      <div class="ilustracao" aria-hidden="true">
+        <span>☀️</span>
+        <strong>🏢　🏬</strong>
+        <b>♿</b>
+      </div>
+    </section>
+
+    <section id="locais" class="secao">
+      <p class="destaque">EXPLORE</p>
+      <h2>Locais que acolhem você</h2>
+
+      <div class="filtros">
+        <button class="filtro ativo" data-filtro="todos">Todos os locais</button>
+        <button class="filtro" data-filtro="rampa">♿ Rampa</button>
+        <button class="filtro" data-filtro="banheiro">🚻 Banheiro adaptado</button>
+        <button class="filtro" data-filtro="vaga">🅿 Vaga reservada</button>
+        <button class="filtro" data-filtro="elevador">↕ Elevador</button>
+      </div>
+
+      <p id="contagem"></p>
+      <div id="cards" class="cards"></div>
+    </section>
+
+    <section id="sobre" class="ods">
+      <div>
+        <p class="destaque">ODS 10</p>
+        <h2>Menos barreiras.<br>Mais autonomia.</h2>
+      </div>
+
+      <p>
+        O RotaAcessível aproxima pessoas e informações para reduzir
+        desigualdades no acesso aos espaços da cidade.
+      </p>
+
+      <strong>100%<small>colaborativo</small></strong>
+    </section>
+  </main>
+
+  <dialog id="modal">
+    <button class="fechar" aria-label="Fechar">×</button>
+    <div id="detalhe"></div>
+  </dialog>
+
+  <footer>RotaAcessível · Projeto acadêmico TADS 2026.2</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
