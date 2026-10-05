@@ -54,6 +54,50 @@ const locais = [
     cor: "#d0e8df",
     acessibilidade: ["rampa", "vaga", "banheiro"],
     descricao: "Hotel com rampa de acesso, vaga reservada e banheiro acessível."
+  },
+  {
+    nome: "Hotel Tomazini",
+    tipo: "Hospedagem",
+    endereco: "Av. Antonio Maranhão, s/n, Centro, Xambioá–TO, 77880-000",
+    icone: "🏨",
+    cor: "#d0e8df",
+    acessibilidade: [],
+    descricao: "Hotel listado em Xambioá. Acessibilidade ainda não verificada.",
+    fonte: "Solutudo",
+    fonteUrl: "https://www.solutudo.com.br/empresas/to/xambioa/hoteis/c-mendes-de-sousa-ltda-42481126"
+  },
+  {
+    nome: "Restaurante Mangueirão",
+    tipo: "Restaurante",
+    endereco: "Av. Presidente Getúlio Vargas, 635, sala B, Baixa Fria, Xambioá–TO",
+    icone: "🍽️",
+    cor: "#f8d9a6",
+    acessibilidade: [],
+    descricao: "Restaurante listado em Xambioá. Acessibilidade ainda não verificada.",
+    fonte: "Tripadvisor",
+    fonteUrl: "https://www.tripadvisor.com.br/Restaurant_Review-g2577948-d8181595-Reviews-Restaurante_Mangueirao-Xambioa_State_of_Tocantins.html"
+  },
+  {
+    nome: "Palácio do Cristal",
+    tipo: "Órgão público",
+    endereco: "Av. E, Quadra 8, Setor Leste, Xambioá–TO",
+    icone: "🏛️",
+    cor: "#d7edd0",
+    acessibilidade: [],
+    descricao: "Sede da Prefeitura Municipal de Xambioá. Acessibilidade ainda não verificada.",
+    fonte: "Prefeitura de Xambioá",
+    fonteUrl: "https://xambioa.to.gov.br/"
+  },
+  {
+    nome: "Orla Principal – Beira-Rio",
+    tipo: "Lazer",
+    endereco: "Orla Principal, Beira-Rio, Xambioá–TO",
+    icone: "🌊",
+    cor: "#d0e8df",
+    acessibilidade: [],
+    descricao: "Espaço público citado pela Prefeitura. Acessibilidade ainda não verificada.",
+    fonte: "Prefeitura de Xambioá",
+    fonteUrl: "https://xambioa.to.gov.br/fundo-da-infancia-e-adolescencia-promove-show-de-talentos-para-criancas-e-adolescentes-de-xambioa/"
   }
 ];
 
@@ -64,28 +108,34 @@ const nomesRecursos = {
   elevador: "↕ Elevador"
 };
 
-let filtroAtual = "todos";
+const filtrosSelecionados = new Set();
 
 const cards = document.querySelector("#cards");
 const contagem = document.querySelector("#contagem");
 const termo = document.querySelector("#termo");
 const modal = document.querySelector("#modal");
 const detalhe = document.querySelector("#detalhe");
+let localSelecionado = null;
+
+function linkGoogleMaps(local) {
+  const consulta = encodeURIComponent(`${local.nome} ${local.endereco}`);
+  return `https://www.google.com/maps/search/?api=1&query=${consulta}`;
+}
 
 function mostrarLocais(busca = "") {
   const texto = busca.toLowerCase().trim();
 
   const encontrados = locais.filter((local) => {
-    const atendeFiltro =
-      filtroAtual === "todos" ||
-      local.acessibilidade.includes(filtroAtual);
+    const atendeFiltros = [...filtrosSelecionados].every((filtro) =>
+      local.acessibilidade.includes(filtro)
+    );
 
     const atendeBusca =
       `${local.nome} ${local.tipo} ${local.endereco}`
         .toLowerCase()
         .includes(texto);
 
-    return atendeFiltro && atendeBusca;
+    return atendeFiltros && atendeBusca;
   });
 
   contagem.textContent =
@@ -102,11 +152,11 @@ function mostrarLocais(busca = "") {
         <h3>${local.nome}</h3>
         <p class="endereco">⌖ ${local.endereco}</p>
 
-        ${local.acessibilidade
-          .map((recurso) =>
-            `<span class="tag">${nomesRecursos[recurso]}</span>`
-          )
-          .join("")}
+        ${local.acessibilidade.length
+          ? local.acessibilidade
+            .map((recurso) => `<span class="tag">${nomesRecursos[recurso]}</span>`)
+            .join("")
+          : '<span class="tag pendente">Acessibilidade não verificada</span>'}
       </div>
 
       <button class="ver" data-indice="${locais.indexOf(local)}">
@@ -122,10 +172,25 @@ function mostrarLocais(busca = "") {
 
 document.querySelectorAll(".filtro").forEach((botao) => {
   botao.addEventListener("click", () => {
-    document.querySelector(".filtro.ativo").classList.remove("ativo");
-    botao.classList.add("ativo");
+    const filtro = botao.dataset.filtro;
 
-    filtroAtual = botao.dataset.filtro;
+    if (filtro === "todos") {
+      filtrosSelecionados.clear();
+    } else if (filtrosSelecionados.has(filtro)) {
+      filtrosSelecionados.delete(filtro);
+    } else {
+      filtrosSelecionados.add(filtro);
+    }
+
+    document.querySelectorAll(".filtro").forEach((opcao) => {
+      const selecionado = opcao.dataset.filtro === "todos"
+        ? filtrosSelecionados.size === 0
+        : filtrosSelecionados.has(opcao.dataset.filtro);
+
+      opcao.classList.toggle("ativo", selecionado);
+      opcao.setAttribute("aria-pressed", String(selecionado));
+    });
+
     mostrarLocais(termo.value);
   });
 });
@@ -145,21 +210,64 @@ cards.addEventListener("click", (evento) => {
   if (!botao) return;
 
   const local = locais[botao.dataset.indice];
+  localSelecionado = local;
+  const mapa = linkGoogleMaps(local);
 
   detalhe.innerHTML = `
     <h2>${local.icone} ${local.nome}</h2>
     <p><strong>${local.tipo}</strong> · ${local.endereco}</p>
     <p>${local.descricao}</p>
 
-    <h3>Recursos confirmados</h3>
-    <ul>
-      ${local.acessibilidade
+    <h3>Recursos de acessibilidade</h3>
+    ${local.acessibilidade.length
+      ? `<ul>${local.acessibilidade
         .map((recurso) => `<li>${nomesRecursos[recurso]}</li>`)
-        .join("")}
-    </ul>
+        .join("")}</ul>`
+      : '<p class="aviso-acessibilidade">Ainda não há informações verificadas. Confirme com o local antes de ir.</p>'}
+    ${local.fonte
+      ? `<p class="fonte-local">Endereço consultado em <a href="${local.fonteUrl}" target="_blank" rel="noopener noreferrer">${local.fonte}</a>.</p>`
+      : ""}
+
+    <div class="acoes-detalhe">
+      <button class="acao-detalhe principal" type="button" data-acao="compartilhar">
+        Compartilhar
+      </button>
+      <a class="acao-detalhe" href="${mapa}" target="_blank" rel="noopener noreferrer">
+        Abrir no Google Maps
+      </a>
+    </div>
   `;
 
   modal.showModal();
+});
+
+detalhe.addEventListener("click", async (evento) => {
+  const botao = evento.target.closest('[data-acao="compartilhar"]');
+
+  if (!botao || !localSelecionado) return;
+
+  const mapa = linkGoogleMaps(localSelecionado);
+  const texto = `${localSelecionado.nome}\n${localSelecionado.tipo} · ${localSelecionado.endereco}\n${mapa}`;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: localSelecionado.nome,
+        text: `${localSelecionado.tipo} · ${localSelecionado.endereco}`,
+        url: mapa
+      });
+      return;
+    } catch (erro) {
+      if (erro.name === "AbortError") return;
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(texto);
+    alert("Informações do local copiadas.");
+  } catch {
+    window.prompt("Copie as informações do local:", texto);
+  }
 });
 
 document.querySelector(".fechar").addEventListener("click", () => {
